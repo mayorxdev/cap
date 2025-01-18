@@ -72,16 +72,22 @@ const ALLOWED_DOMAINS = process.env.ALLOWED_DOMAINS.split(',');
 
 // Add domain-specific middleware
 app.use((req, res, next) => {
-    const allowed = ALLOWED_DOMAINS.some(domain => {
-        const regex = new RegExp(`^(www\.)?${domain.replace('.', '\\.')}$`);
-        return regex.test(req.hostname);
-    });
-    
-    if (!allowed) {
-        console.log(`Blocked request from ${req.hostname}`);
-        return res.status(403).send('Forbidden');
-    }
-    next();
+  const allowed = ALLOWED_DOMAINS.some((domain) => {
+    const regex = new RegExp(`^(www\.)?${domain.replace(".", "\\.")}$`);
+    return regex.test(req.hostname);
+  });
+
+  if (!allowed) {
+    console.log(`Blocked request from ${req.hostname}`);
+    return res.status(403).send("Forbidden");
+  }
+
+  // Ensure proper protocol
+  if (req.protocol !== "https") {
+    return res.redirect(`https://${req.hostname}${req.originalUrl}`);
+  }
+
+  next();
 });
 
 const options = {
